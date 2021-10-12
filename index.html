@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Documentation - Jack Riggs</title>
+	<script src="https://d3js.org/d3.v3.min.js"></script>
+    <style>
+        .nav {
+            font-size: 20px;
+            padding-right: 20px 
+        }
+    </style>
+</head>
+<body>
+    
+    <div style="text-align: left; width: 1000px; margin-left: 30px; margin-top: 10px;">
+        <a class="nav" href="index.html">Link to Documentation</a>
+        <a class="nav" href="visualization.html">Link to Online Visualization</a>
+        <a class="nav" href="https://www.youtube.com/watch?v=jJL1ZyiwUoI" target="_blank">Link to Video Overview</a>
+        
+        <h1>H517 Project 1 - Jack Riggs</h1>
+        <h2>Documentation and Design Process</h2>
+        <h3>Design Process</h3>
+        
+        <p>
+        My initial work on this project was focused on translating the map coordinates into a physical map on the screen. After I was able to get the map visible on screen, I focused on adding as much data as I could from the ".csv" files to the map (pumps, death locations) in order to get at least an initial idea of how the filled-in map might look. After all the data was added to the maps, I made an initial sketch of the visualizations I wanted, their initial layout, and some functionality I knew I would need. <br>This initial sketch is provided below:
+        </p>
+        
+        <img alt="Initial sketch of a map and timeline chart with functionality" src="images/Initial-Design-Idea.jpg" width="1000px">
+        
+        <p> 
+        Based on this sketch, I knew I would want the two charts side-by-side so that any changes made to the map's visible data via the timeline functionality would be easily visible. If I were to put the timeline chart under the map, users would have to constatnly scroll up/down on the page to see changes that were made.
+        </p>
+            
+        <p>
+        This sketch also indicated the initial functionality of the timeline chart. I knew that I wanted to visualize daily and total deaths, but was unsure at the time if I wanted them on the chart at the same time. One initial idea I had was to show only the daily deaths on the timeline chart, but then show the total deaths for a day when it was hovered. While this specific feature did not make it to the final visualization, an similar feature was implemented instead.
+        </p>
+        
+        <p>
+        After getting the daily death data on the timeline chart with the inital hover functionality (hover to show those deaths on the map), I started sketching ideas for additional features and charts. My goal was to meet all of the requirements in the project, so the new sketch of the layout and functionality needed to show how I might meet more of these requirements. The image below shows this sektch that showed how I wanted to introduce more charts to the visualization and how I might go about completeing more of the requirements, such as the grid/clustering feature and more interactivity on the timeline. 
+        </p>
+        
+        <img alt="Sketch of final layout that includes the map chart, timeline chart, and pie charts." src="images/Final-Design-Idea.jpg" width="1000px">
+        
+        <p>
+        This sketch was used to determine the final layout of the visualization by having the map take up one side of the page, and the timeline and pie charts on the other side. Similar to the first sketch, the reason for having the charts side-by-side was that it would be easier to see the timeline interactions on the chart. I also knew I wanted to have the pie charts above the timeline because they would not take up much space and could still be visible and interacted with without needing to scroll down on the page. Additionally, I added a feature to the timeline chart that would show more data when a data point was hovered, including its date, day's deaths, and total deaths. Because I planned on having an option to change the data on the timeline between daily and total deaths, I felt this information box would be useful because it would prevent the user from having to constantly switch between views to get the same information. Now that I was done with the intial design/layout of the visualization, I began working on adding additional functionality that would increase the visualization's interactivity such as adding a grid to the map to easily see how many deaths were in each cell, being able to view a window of days on the timeline chart (divided by week), and zooming/panning on the map.
+        </p>
+        
+        <h3>Design Rationale</h3>
+        
+        <img alt="Legend for the map visualization." src="images/Map-Legend.PNG" width="500px">
+        
+        <h4>Colors</h4>
+        
+        <p>
+        When adding colors to the visualization, it was important that an element's color not be the only feature used to differentiate it from other similar elements (except for one circumstance). This was because if a user had a type of color blindness,  I wanted them to still be able to differentiate different items (such as whether a victim on the map was male or female). The one exception to this is that color is used to differentiate between different age groups on the map and pie charts. However, these colors encompass multiple hues, meaning that even if a person has the color blindness, they are still able to see the different hues or shades of the color to differentiate between the ages. This can be seen in the iamge of the map's Legend above. When I tested this visualization with a <a href="https://www.color-blindness.com/coblis-color-blindness-simulator/">color blindness tool</a>, I was able to still make out important details even with different color blindnesses simulated. The only area this got a little difficult was with the gender pie chart and a monochromatic view. Here, the two colors were essentially the same, but it was still possible to make out male or female because of the addition of text that labeled the two genders on the chart. This can be seen in the image provided below:
+        </p>
+        
+        <img alt="Monochrome view of the Gender pie chart." src="images/Mono-Gender.PNG" width="500px">
+        
+        <p>
+        One final note on color was that the color for the Pumps was different from the age colors with and without a color blindness. Although the Pump icon is slightly larger than the death icons, it is much easier to differentiate the two if there is a color or hue difference from the other elements.
+        </p>
+        
+        <h4>Shapes</h4>
+        
+        <p>
+           Shapes were mainly used to differentiate between the death icons of different genders on the map. Although the Pumps are a similar shape to Male death icons, the Pumps are slightly larger and a different color in order to prevent users from getting confused when looking at the map. As seen in the image above the "colors" section, squares and circles were used to differentiate between males and females on the map. The main reason for this was that it would make it much easier to determine the gender of a death by simply looking at the shape. Although colors could also be used to separate the genders, it would not allow users to see the age of the person as well unless the ages were different colors or made a very small addition to the gender icon. With this in mind, it was much easier to use shapes to differentiate between the genders and then use colors for the many more ages.
+        </p>
+        
+        <h4>Arrangement of Charts</h4>
+        
+        <img alt="View of the chart layout." src="images/Map-Full.PNG" width="500px">
+        
+        <p>
+        As seen in the image above, the final layout of the charts was the same as what was expected based on the final sketch. It is not important to be able to make out the fine details in the image, but rather see that the larger map is presented next to the pie and timeline charts. As mentioned earlier, this was important beacuse it meant that changes made to the data on the timeline chart would easily be visible in the other charts without requiring the user to move the page. Another note on the placement of the pie charts was that the data presented by these charts would always be visible, particularly beacuse they could be helpful when the map chart is extremely full (such as in the image). It would be difficult to make out the exact demographics of the death icons in this case, so instead a user can look at the pie charts to get a quick understanding of the data (such as comparing the deaths between males and females). By hovering a section on the pie chart, the user can quickly get the specific details of that section, such as the exact number of males or females that died on a given day.
+        </p>
+        
+        <h4>Data Analysis</h4>
+        
+        <p>
+        One interesting finding was that generally more females died during the second week of the outbreak, espcially during the days with the largest jump in deaths. Based on the time period of the outbreak, it seems likely that the spike in deaths, especially in women, could be a result of many women being at home for most of the day (either working as housekeepers or simply being at home), likely meaning they had easy access to water and drank more water throughout the day, meaning it would be more likely for them to get sick and die as a result of the outbreak. Because the males at the time were generally factory workers, they likely didn't have constant access to water, thus resulting in less deaths during this time period. An example of this finding is provided in the image below:
+        </p>
+        
+        <img alt="View of timeline chart during the second week." src="images/data-analysis-1.PNG" width="500px">
+        
+        <p>
+        A general finding from looking at the map is that most of the deaths were near the work house and brewery, suggesting that the source these could be sources of the water contamination that led to the outbreak. This seems espeically true when there are significantly less deaths as you look towards the ends of the town. While this suggests that the source of the contamination is the center of town, it also might suggest that many people lived near the workhouse and brewery in order to be closer to where they worked, meaning that the people who lived farther away from these points either had less contaminated water, or just did not make their way into the center of town.
+        </p>
+        
+        <img alt="View of timeline chart during the second week." src="images/data-analysis-2.PNG" width="500px">
+        
+        <p>
+        One final finding shown below was that the largest number of deaths occurred in the oldest age group (> 80), suggesting that the Cholera might have had worse effects on older people in the area. The second largest number of deaths occurred in people between the ages of 0-10, further suggesting that the effects many not have been more severe for just elderly people in the are, but also children as well. This suggests that Cholera had the most life threatening effects on people who did not have great immune systems, such as children where it was under-developed or the elderly where their immune systems were beginning to fade.
+        </p>
+        
+        <img alt="View of timeline chart during the second week." src="images/data-analysis-3.PNG" width="500px">
+        
+    </div>
+</body>
+</html>

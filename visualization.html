@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Visualization - Jack Riggs</title>
+	<script src="https://d3js.org/d3.v3.min.js"></script>
+    <style>
+    	text { 
+			font-family: Arial; 
+			font-size: 15px;
+		}
+        .label {
+            font-size: 20px;
+            font-weight: bold;
+        }
+		.axis path, .axis line {
+			fill: none;
+			stroke: black;
+			shape-rendering: crispEdges;
+		}
+		.tick text {
+			fill: black;
+			font-size: 11px;
+        }
+        #map-legend {
+            border: 1px solid black;
+            fill: none;
+            stroke: black;
+            stroke-width: 2px;
+        }
+        #legend-text {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .street-names {
+            font-size: 8px;
+            font-weight: bold;
+        }
+        #daily-deaths {
+            fill:#c6dbef;
+            stroke: black;
+        }
+        #total-deaths {
+            fill:none;
+            stroke: black;
+        }
+        #death-data {
+            fill:none;
+            stroke: black;
+        }
+        #date-data, #day-data, #total-data {
+            font-weight: bold;
+        }
+        #reset-zoom {
+            fill:#c6dbef;
+            stroke: black;  
+        }
+        #map-chart {
+            position: absolute;
+            border: 2px solid black;
+        }
+        .grid-clusters {
+            fill: white;
+            stroke: black; 
+        }
+        .week-select {
+            fill: none;
+            stroke: black;
+        }
+        .blank-pie {
+            fill: none;
+            stroke: black;
+        }
+        .nav {
+            font-size: 20px;
+            padding-right: 20px 
+        }
+	</style>
+</head>
+<body>
+    <div style="text-align: center; width: 1000px; margin-left:425px; margin-top: 10px;">
+    <a class="nav" href="index.html">Link to Documentation</a>
+    <a class="nav" href="visualization.html">Link to Online Visualization</a>
+    <a class="nav" href="https://www.youtube.com/watch?v=jJL1ZyiwUoI" target="_blank">Link to Video Overview</a>
+        
+        <h1>H517 Project 1 - Jack Riggs</h1>
+        <h2>Visualizations of the 1854 Cholera Epidemic</h2>
+        <p style="text-align: left">This data visualization is based on the map created by Dr. John Snow of London's Cholera epidemic in 1854 which was used to discover a link between the Cholera outbreak and contaminated water in the city. The visualization below was created with HTML, CSS, JavaScript, and the version 3 of the D3 Javascript Library. The visualizations were constructed using a vector map of the affected area, location coordinates for victims that included their age and gender, and a list of the number of deaths per day over six weeks.</p>
+        
+        <p style="text-align: left">The following functionality is provided in the visualization below:</p>
+        <ul style="text-align: left">
+            <li><b>Map of Cholera Outbreak Deaths (1854):</b></li>
+                <ul>
+                    <li>This map visualizes the death locations during the epidemic. Data visible on the map is controlled by the timeline chart.</li>
+                    <li>Zoom in/out and pan around the map using a mouse.</li>
+                    <li>Click on a "Deaths per Cluster" grid option to place a grid of that size on top of the map. Moving the mouse over different cells in the grid shows how deaths occurred in that grid (visible in the box next to this feature's label).</li>
+                </ul>
+            
+            <li><b>Deaths by Age/Gender Pie Charts:</b></li>
+                <ul>
+                    <li>These charts show the distribution of deaths by age and gender. The data visible here is controlled by the timeline chart.</li>
+                    <li>Hover over a section in a pie chart to view more details of that section, including the number of deaths the percentage relates to (representative of the data visible on the map via the timeline chart).</li>
+                </ul>
+            
+            <li><b>Timeline of Cholera Deaths (1854):</b></li>
+                <ul>
+                    <li>This chart shows the number of deaths that occurred per day. The data that is visible in this timeline changes the data that is visible in the map and pie charts.</li>
+                    <li>Hover over a circle on the chart to view the death information for that specific day in the timeline and pie charts, and see where those deaths occurred on the map.</li>
+                    <li>Use the "Daily" and "Total" buttons to switch between viewing the individual deaths per day or the total number of deaths as it increased each day (affects the deaths visibile on the map and pie charts, respectively).</li>
+                    <li>Use the date selectors at the bottom of the chart to change the window of days that is shown on all visualizations. The chart defaults to "All Days", meaning it shows each individual day, but the other options will cause the chart to show only one week at a time. This data is also affected in the same way when using the "Daily" and "Total" selectors.</li>
+                </ul>
+        </ul>
+    </div>
+    
+    <div style="padding-top: 20px; margin-left:225px;">
+        
+        <svg id="map-chart" width="550" height="500" cursor="move" transform="translate(115,175)">
+            <g id="map-chart-g"></g>
+        </svg>
+        
+        <svg width="800" height="1000" style="border: 1px solid black; float: left">
+            <text class='label' x='200' y="35">Map of Cholera Outbreak Deaths (1854)</text>
+            
+            <rect id="reset-zoom" width="100" height="25" x="345" y="130"></rect>
+            <text x="353" y="147" style="font-weight: bold" onclick="resetZoom()" cursor="pointer">Reset Zoom</text>
+            
+            <text x="120" y="723" style="font-weight: bold">Deaths per Cluster:</text>
+            
+            <rect width="40" height="30" x="265" y="702.5" style="fill: none; stroke:black;"></rect>
+            <text id="grid-value" x="270" y="723" style="font-weight: bold;"></text>
+            
+            <rect class="grid-clusters" id="grid2" width="80" height="25" x="325" y="705"></rect>
+            <text x="335" y="723" style="font-weight: bold" cursor="pointer" onclick="setGrid(2)">2x2 Grid</text>
+            
+            <rect class="grid-clusters" id="grid5" width="80" height="25" x="425" y="705"></rect>
+            <text x="435" y="723" style="font-weight: bold" cursor="pointer" onclick="setGrid(5)">5x5 Grid</text>
+            
+            <rect class="grid-clusters" id="grid10" width="80" height="25" x="525" y="705"></rect>
+            <text x="526" y="723" style="font-weight: bold" cursor="pointer" onclick="setGrid(10)">10x10 Grid</text>
+            
+            <rect id="grid0" width="30" height="25" x="625" y="705" style="fill: #ff6363; stroke:black;"></rect>
+            <text x="635" y="723" style="font-weight: bold" cursor="pointer" onclick="setGrid(0)">X</text>      
+            
+            <rect id="map-legend" width="450" height="220" x="170" y="760"></rect>
+            <text id="legend-text" x='350' y='785'>Legend</text>
+            <text x="240" y="815" style="font-weight: bold">Map</text>
+            <rect width="15" height="15" x="230" y="825" style="fill:#feedde; stroke: black"></rect>
+            <text x="250" y="838">Pump</text>
+
+            <text x="355" y="815" style="font-weight: bold">Gender</text>
+            <rect width="15" height="15" x="350" y="825" style="fill:#ffffff; stroke: black"></rect>
+            <text x="370" y="838">Male</text>
+            <circle r="7.5" cx="357" cy="855" style="fill:#ffffff; stroke: black"></circle>
+            <text x="370" y="860">Female</text>
+
+            <text x="515" y="815" style="font-weight: bold">Age</text>
+            <rect width="15" height="15" x="500" y="825" style="fill:#eff3ff; stroke: black"></rect>
+            <circle r="7.5" cx="525" cy="833" style="fill:#eff3ff; stroke: black"></circle>
+            <text x="537" y="838">0-10</text>
+
+            <rect width="15" height="15" x="500" y="847" style="fill:#c6dbef; stroke: black"></rect>
+            <circle r="7.5" cx="525" cy="855" style="fill:#c6dbef; stroke: black"></circle>
+            <text x="537" y="861">11-20</text>
+
+            <rect width="15" height="15" x="500" y="869" style="fill:#9ecae1; stroke: black"></rect>
+            <circle r="7.5" cx="525" cy="877" style="fill:#9ecae1; stroke: black"></circle>
+            <text x="537" y="883">21-40</text>
+
+            <rect width="15" height="15" x="500" y="891" style="fill:#6baed6; stroke: black"></rect>
+            <circle r="7.5" cx="525" cy="899" style="fill:#6baed6; stroke: black"></circle>
+            <text x="537" y="905">41-60</text>
+
+            <rect width="15" height="15" x="500" y="913" style="fill:#3182bd; stroke: black"></rect>
+            <circle r="7.5" cx="525" cy="921" style="fill:#3182bd; stroke: black"></circle>
+            <text x="537" y="927">61-80</text>
+
+            <rect width="15" height="15" x="500" y="935" style="fill:#08519c; stroke: black"></rect>
+            <circle r="7.5" cx="525" cy="943" style="fill:#08519c; stroke: black"></circle>
+            <text x="537" y="949"> > 80</text>
+        </svg>
+
+        <svg id="pie-chart" width="600" height="300" style="border: 1px solid black; float: left;">
+            <text class='label' x='100' y='35'>Deaths by Age</text>
+            <circle class="blank-pie" r="100" transform="translate(170, 160)"></circle>
+            <circle class="blank-pie" r="40" transform="translate(170, 160)"></circle>
+            <text class='label' x='340' y='35'>Deaths by Gender</text>
+            <circle class="blank-pie" r="100" transform="translate(420, 160)"></circle>
+            <circle class="blank-pie" r="40" transform="translate(420, 160)"></circle>
+            <g id="pie-chart-g" transform="translate(70,60)" ></g>
+        </svg>
+
+        <svg id="timeline-chart" width="600" height="698" style="border: 1px solid black; float: left;">
+            <text class='label' x='140' y='35'>Timeline of Cholera Deaths (1854)</text>
+
+            <rect id="daily-deaths" width="60" height="25" x="225" y="45"></rect>
+            <text x="237" y="63" style="font-weight: bold" onclick="timeFrame('daily')" cursor="pointer">Daily</text>
+
+            <rect id="total-deaths" width="60" height="25" x="285" y="45"></rect>
+            <text x="297" y="63" style="font-weight: bold" onclick="timeFrame('total')" cursor="pointer">Total</text>
+
+            <rect id="death-data" width="150" height ="75" x="210" y="85"></rect>
+            <text id="date-data" x="215" y="105">Date:</text>
+            <text id="date-input" x="255" y="105"></text>
+
+            <text id="day-data" x="215" y="125">Day's Deaths:</text>
+            <text id="day-input" x="317" y="125"></text>
+
+            <text id="total-data" x="215" y="145">Total Deaths:</text>
+            <text id="total-input" x="312" y="145"></text>
+
+            <text id='x-label' x='277' y=575>Date</text>
+            <text id='y-label' x='-25' y="-450" style="writing-mode:tb-rl; transform: rotate(-180deg)">Number of Deaths (per Day)</text>
+            
+            <rect class="week-select" id="week0" width="60" height="25" x="25" y="600" style="fill: #c6dbef"></rect>
+            <text x="25.5" y="618" style="font-weight: bold" onclick="weekAdjust(null)" cursor="pointer">All Days</text>
+            
+            <rect class="week-select" id="week1" width="60" height="25" x="105" y="600"></rect>
+            <text x="109" y="618" style="font-weight: bold" onclick="weekAdjust(0)" cursor="pointer">Week 1</text>
+            
+            <rect class="week-select" id="week2" width="60" height="25" x="185" y="600"></rect>
+            <text x="189" y="618" style="font-weight: bold" onclick="weekAdjust(1)" cursor="pointer">Week 2</text>
+            
+            <rect class="week-select" id="week3" width="60" height="25" x="265" y="600"></rect>
+            <text x="269" y="618" style="font-weight: bold" onclick="weekAdjust(2)" cursor="pointer">Week 3</text>
+            
+            <rect class="week-select" id="week4" width="60" height="25" x="345" y="600"></rect>
+            <text x="349" y="618" style="font-weight: bold" onclick="weekAdjust(3)" cursor="pointer">Week 4</text>
+            
+            <rect class="week-select" id="week5" width="60" height="25" x="425" y="600"></rect>
+            <text x="431" y="618" style="font-weight: bold" onclick="weekAdjust(4)" cursor="pointer">Week 5</text>
+            
+            <rect class="week-select" id="week6" width="60" height="25" x="505" y="600"></rect>
+            <text x="511" y="618" style="font-weight: bold" onclick="weekAdjust(5)" cursor="pointer">Week 6</text>
+            
+            <g id="timeline-chart-g" transform="translate(70,200)" ></g>
+        </svg>
+    </div>
+    <input type="hidden" id="temp" value="daily">
+	<script>
+        var CHART_WIDTH = 700;
+        var CHART_HEIGHT = 700;
+        
+        var mapChart = d3.select('#map-chart');
+        var timeChart = d3.select('#timeline-chart');
+        var gMap = d3.select('#map-chart').select('#map-chart-g') ;
+        var gTime = d3.select('#timeline-chart').select('#timeline-chart-g');
+        var gPie = d3.select('#pie-chart').select('#pie-chart-g');
+        var timelineDaily = d3.select('#daily-deaths');
+        var timelineTotal = d3.select('#total-deaths');
+        
+        var xScale = d3.scale.linear()
+            .domain([0,100])
+            .range([0,CHART_WIDTH]);
+            
+        var yScale = d3.scale.linear()
+            .domain([0,100])
+            .range([CHART_HEIGHT,0]);
+        
+        //Scale the map to make it larger.
+        var mapScale = 4.5;
+        
+        //Initialize data arrays.
+        var mapCoords = [];
+        var pumpCoords = [];
+        var deathCoords = [];
+        var timelineCoords = [];
+        var adjustedTimelineCoords = [];
+        var ageColor;
+        var gridValue = 0;
+        var weekNum;
+        
+        //Reset map zoom.
+        function resetZoom() {
+            gMap.attr("transform", "translate(0,0), scale(1)")
+        }
+        
+        //Create the street map.
+		function createStreetMap() {
+            //Create the street map.
+            for (i = 0; i < mapCoords.length; i++) { //Draw each line segment.
+                for (j = 2; j <= mapCoords[i].length; j++) { //Draw each line within the segments.
+                    gMap.append('line')
+                        .style('fill', 'white')
+                        .style('stroke', 'black')
+                        .style('stroke-width', '3px')
+                        .attr('x1', xScale(mapCoords[i][j-2].x * mapScale))
+                        .attr('y1', yScale(mapCoords[i][j-2].y * mapScale)) 
+                        .attr('x2', xScale(mapCoords[i][j-1].x * mapScale))
+                        .attr('y2', yScale(mapCoords[i][j-1].y * mapScale))
+                        .attr("transform", "translate(-90,-100)")
+                }   
+            }
+
+            //Load and create the rest of the data after the map has been drawn.
+            loadData();
+            mapDetails();         
+  
+            //Add zoom and pan to map.
+            mapChart.call(d3.behavior.zoom()
+                .scaleExtent([1, 10])
+                .on("zoom", function () {
+                    gMap.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")")
+                }))
+        }
+        
+        //Add map details (work house, brewery, street names)
+        function mapDetails() {
+            //Work House Rect.
+            gMap.append('rect')
+                .attr("height", 30)
+                .attr("width", 40)
+                .attr("x", 119)
+                .attr("y", 275)
+                .style("fill", "none")
+                .style("stroke", "black")
+                .style("stroke-width", "3px")
+                .style("transform", "rotate(-30deg)")
+            
+            //Work House Text 1.
+            gMap.append("text")
+                .text("Work")
+                .attr("x", 127)
+                .attr("y", 289)
+                .style("font-size", "10px")
+                .style("font-weight", "bold")
+                .style("transform", "rotate(-30deg)")
+            
+            //Work House Text 2.
+            gMap.append("text")
+                .text("House")
+                .attr("x", 125)
+                .attr("y", 298)
+                .style("font-size", "10px")
+                .style("font-weight", "bold")
+                .style("transform", "rotate(-30deg)")
+            
+            //Brewery Text.
+            gMap.append("text")
+                .text("Brewery")
+                .attr("x", 355)
+                .attr("y", -186)
+                .style("font-size", "8px")
+                .style("font-weight", "bold")
+                .style("transform", "rotate(60deg)")
+            
+            //Broad Street.
+            gMap.append("text")
+                .text("Broad Street")
+                .attr("x", 135)
+                .attr("y", 345)
+                .attr("class", "street-names")
+                .style("transform", "rotate(-25deg)")
+            
+            //Brewer Street.
+            gMap.append("text")
+                .text("Brewer Street")
+                .attr("x", -25)
+                .attr("y", 503)
+                .attr("class", "street-names")
+                .style("transform", "rotate(-45deg)")
+            
+            //Poland Street.
+            gMap.append("text")
+                .text("Poland Street")
+                .attr("x", 277)
+                .attr("y", -202)
+                .attr("class", "street-names")
+                .style("transform", "rotate(65deg)")
+            
+            //Great Marlborough Street.
+            gMap.append("text")
+                .text("Great Marlborough Street")
+                .attr("x", 110)
+                .attr("y", 226)
+                .attr("class", "street-names")
+                .style("transform", "rotate(-22deg)")
+            
+            //Dean Street.
+            gMap.append("text")
+                .text("Dean Street")
+                .attr("x", 320)
+                .attr("y", -345)
+                .attr("class", "street-names")
+                .style("transform", "rotate(65deg)")
+            
+            //Wardour Street.
+            gMap.append("text")
+                .text("Wardour Street")
+                .attr("x", 340)
+                .attr("y", -284)
+                .attr("class", "street-names")
+                .style("transform", "rotate(65deg)")
+            
+            //Berwick Street.
+            gMap.append("text")
+                .text("Berwick Street")
+                .attr("x", 330)
+                .attr("y", -220)
+                .attr("class", "street-names")
+                .style("transform", "rotate(60deg)")
+            
+            //Regent Street.
+            gMap.append("text")
+                .text("Regent Street")
+                .attr("x", 300)
+                .attr("y", -8)
+                .attr("class", "street-names")
+                .style("transform", "rotate(60deg)")
+            
+            //Lexington Street.
+            gMap.append("text")
+                .text("Lexington Street")
+                .attr("x", 365)
+                .attr("y", -143)
+                .attr("class", "street-names")
+                .style("transform", "rotate(58deg)")
+            
+            //Oxford Street.
+            gMap.append("text")
+                .text("Oxford Street")
+                .attr("x", 223)
+                .attr("y", 114)
+                .attr("class", "street-names")
+                .style("transform", "rotate(-10deg)")
+        }
+        
+        //Add pump locations to the map.
+        function addPumps() {          
+            gMap.selectAll('#map-chart-g')
+    			.data(pumpCoords)
+    			.enter()
+    			.append('rect')
+    			.style('fill', '#feedde')
+                .style("stroke", "black")
+                .attr('width', "12")
+                .attr('height', "12")
+    			.attr('x', function(d) {return xScale(d.x * mapScale)})
+    			.attr('y', function(d) {return yScale(d.y * mapScale)})
+                .attr("transform", "translate(-90,-100)");
+        }
+        
+        //Add death locations to the map as a circle.
+        function addDeaths(totalDeaths, prevDayDeaths) {
+            //Remove all circles to replace with desired number.
+            gMap.selectAll(".deathIcon").remove();
+            gMap.attr("class", totalDeaths + " " + prevDayDeaths); //Save the death information in the gMap's class.
+            
+            for (var i = prevDayDeaths; i < totalDeaths; i++) {
+                
+                //Change the color based on person's age.
+                if (deathCoords[i].age == 0) {
+                    ageColor = "#eff3ff";
+                } else if (deathCoords[i].age == 1) {
+                    ageColor = "#c6dbef";
+                } else if (deathCoords[i].age == 2) {
+                    ageColor = "#9ecae1";
+                } else if (deathCoords[i].age == 3) {
+                    ageColor = "#6baed6";
+                } else if (deathCoords[i].age == 4) {
+                    ageColor = "#3182bd";
+                } else {
+                    ageColor = "#08519c";
+                }
+                
+                //Change the shape based on person's gender.
+                if (deathCoords[i].gender ==0) {  //Male
+                    gMap.append('rect')
+                        .style('fill', ageColor)
+                        .style("stroke", "black")
+                        .attr('width', 8)
+                        .attr('height', 8)
+                        .attr("class", "deathIcon")
+                        .attr('x', xScale(deathCoords[i].x * mapScale))
+                        .attr('y', yScale(deathCoords[i].y * mapScale))
+                        .attr("transform", "translate(-90,-100)")
+                } else { //Female
+                    gMap.append('circle')
+                        .style('fill', ageColor)
+                        .style("stroke", "black")
+                        .attr('r', 4)
+                        .attr("class", "deathIcon")
+                        .attr('cx', xScale(deathCoords[i].x * mapScale))
+                        .attr('cy', yScale(deathCoords[i].y * mapScale))
+                        .attr("transform", "translate(-90,-100)")
+                }
+                
+                
+            }
+            //Redraw the grid so it is above the new map elements.
+            setGrid(Number(document.getElementById("map-chart").getAttribute("class")))
+        }
+        
+        //Add grid lines to view data clusters.
+        function setGrid(numGrid) {
+            gridSize = Number(numGrid);
+            
+            mapChart.attr("class", numGrid)
+            
+            gMap.selectAll(".grid-rect").remove();
+            
+            if (numGrid == 0) { 
+                d3.selectAll(".grid-clusters")
+                .style("fill", "white")
+                
+                document.getElementById("grid-value").textContent= "";
+                
+                return;
+            }
+            
+            //Change the color of the selected grid
+            d3.selectAll(".grid-clusters")
+                .style("fill", "white")
+            d3.select("#grid" + gridSize)
+                .style("fill", "#c6dbef")
+            
+            for (i = 0; i < numGrid; i++) {
+                for (j = 0; j < numGrid; j++) {
+                    var xCell = 500/gridSize
+                    var yCell = 480/gridSize
+                    var x = 25 + (xCell * j) ;
+                    var y = 10 + (yCell * i);
+                    var rectID = "rect-" + j + "-" + i;
+
+                    gMap.append("rect")
+                        .style('fill', 'white')
+                        .style("opacity", .3)
+                        .attr("id", rectID)
+                        .attr("class", "grid-rect " + xCell + " " + yCell)
+                        .attr("onmouseover", "countDeaths("+"'"+rectID+"'"+")")
+                        .style('stroke', '#08519c')
+                        .style('stroke-width', '3px')
+                        .attr("width", xCell)
+                        .attr("height", yCell)
+                        .attr('x', x)
+                        .attr('y', y) 
+                }
+            }
+        }
+        
+        function countDeaths(x) {
+            gMap.select("#" + x)
+                .style("fill", "black")
+                .style("opacity", .3)
+            gMap.select("#" + x)
+                .on("mouseout", function() {
+                gMap.select("#" + x)
+                .style("fill", "white")
+            })
+            
+            rectX = Number(document.getElementById(x).getAttribute("x"));
+            rectY = Number(document.getElementById(x).getAttribute("y"));
+            
+            //Get grid information from the rectangle's class.
+            gridSize = document.getElementById(x).getAttribute("class").split(" ");
+            xCell = Number(gridSize[1]);
+            yCell = Number(gridSize[2]);
+            
+            //Get death numbers from the map's class.
+            deathInfo = document.getElementById("map-chart-g").getAttribute("class").split(" ");
+            //console.log(deathInfo)
+            totalDeaths = Number(deathInfo[0]);
+            prevDayDeaths = Number(deathInfo[1]);
+            gridDeaths(totalDeaths, prevDayDeaths, rectX, rectY, xCell, yCell)
+        }
+        
+        function gridDeaths(totalDeaths,prevDayDeaths, rectX, rectY, xCell, yCell) {
+            deathCount = 0;
+            for (i = prevDayDeaths; i < totalDeaths; i++) {
+                deathX = xScale(deathCoords[i].x * mapScale) - 90 //minus the x translate value.
+                deathY = yScale(deathCoords[i].y * mapScale) - 100 //minus the y translate value.
+                if ((deathX >= rectX && deathX <=(rectX + xCell)) && (deathY >= rectY && deathY <=(rectY + yCell))) {
+                    deathCount++
+                }
+                         
+            }
+            document.getElementById("grid-value").textContent= deathCount;
+        }
+        
+        function weekAdjust(x) {
+            time = document.getElementById("temp").value;
+            
+            if (time == "daily") {
+                xdomain = 150;
+            } else {
+                xdomain = 600;
+            }
+            
+            createTimeline(time, xdomain, x);
+        }
+        
+        //Create the timeline chart.
+        function createTimeline(time, xdomain, week) {
+            
+            adjustedTimelineCoords = [];
+            var tempTotal = 0;
+            
+            gTime.selectAll(".death-time").remove();
+            gTime.selectAll(".axis").remove();
+            document.getElementById("date-input").textContent = "";   
+            document.getElementById("day-input").textContent = "";   
+            document.getElementById("total-input").textContent = "";  
+            
+            
+            CHART_WIDTH = 500;
+            CHART_HEIGHT = 300;
+            
+            //Base state is showing daily deaths.
+            if (time == undefined) {
+                time = "daily";
+                xdomain = 150;
+                
+                var selectDaily = document.getElementById('daily-deaths');
+                var selectTotal = document.getElementById('total-deaths');
+                
+                selectDaily.setAttribute("style", "fill: #c6dbef");
+                selectTotal.setAttribute("style", "fill: none");
+            }
+            
+            weekNum = week;
+            //Change the color of the week buttons
+            changeWeek(weekNum);
+            //timeFrame()
+            timeChart.attr("class", weekNum);
+            //Edit the timeline to show a specific week.
+            if (weekNum != null) { 
+                weekNum = Number(weekNum)
+                for (var i = (7 * weekNum); i < (7 * (weekNum + 1)); i++) {
+                    adjustedTimelineCoords.push(timelineCoords[i]);
+                    tempTotal += Number(timelineCoords[i].deaths);
+                }
+    
+                gMap.selectAll(".deathIcon").remove();
+                
+                if (weekNum == 0) {
+                    addDeaths(tempTotal, 0)
+                    pieCharts(tempTotal, 0, tempTotal)
+                } else {
+                    prevTotal = Number(timelineCoords[(i - 8)].total);
+                    weekTotal = Number(timelineCoords[i-1].total);
+                    
+                    if (time == "total") {
+                        addDeaths(weekTotal, 0);
+                        pieCharts(weekTotal, 0 , weekTotal);
+                    } else {
+                        addDeaths(weekTotal, prevTotal);
+                        pieCharts(weekTotal, prevTotal , (weekTotal - prevTotal));
+                    }
+                }
+            } else {
+                adjustedTimelineCoords = timelineCoords;
+                addDeaths(deathCoords.length, 0);
+                pieCharts(deathCoords.length, 0, deathCoords.length);
+            }
+            //console.log(adjustedTimelineCoords)
+            
+            var xScale = d3.scale.ordinal()
+                .domain(adjustedTimelineCoords.map(function(d) {return d.date}))
+                .rangeRoundBands([0,(CHART_WIDTH)]);
+            
+            var xAxis = d3.svg.axis()
+                .scale(xScale)
+                .orient("bottom")
+                .tickPadding(20)
+            
+            var yScale = d3.scale.linear()
+                .domain([0, xdomain])
+                .range([CHART_HEIGHT,0]);
+            
+            var yAxis = d3.svg.axis()
+                .scale(yScale)
+                .orient("left")
+                .ticks(12);
+            
+            if (time == "daily") {
+                var pathGenerator = d3.svg.line()
+                    .x(function(e){return xScale(e.date)})
+                    .y(function(e){return yScale(e.deaths)})
+            } else {
+                var pathGenerator = d3.svg.line()
+                    .x(function(e){return xScale(e.date)})
+                    .y(function(e){return yScale(e.total)})
+            }
+
+            gTime.append("g")
+                .attr("class", "axis")
+                .attr("id", "xAxis")
+                .attr("transform","translate(0,"+(CHART_HEIGHT)+")")
+                .style("writing-mode", function(d) { return weekNum != null ? "tb-lr" : "tb-rl"})
+                .call(xAxis)
+
+            gTime.append("g")
+                .attr("class","axis")
+                .attr("id", "yAxis")
+                .call(yAxis)
+            
+            gTime.append("path")
+                .style("fill","none")
+                .style("stroke","#08519c")
+                .style("stroke-width","4px")
+                .attr("class", "death-time")
+                .attr("transform",function(d) { return weekNum != null ? "translate(35,0)" : "translate(5,0)"})
+                .attr("d",pathGenerator(adjustedTimelineCoords));
+            
+            if (time == "daily") {
+                gTime.selectAll('circle')
+                    .data(adjustedTimelineCoords)
+                    .enter()
+                    .append('circle')
+                    .style('fill', '#eff3ff')
+                    .style("stroke", "black")
+                    .attr("cursor", "pointer")
+                    .attr("transform",function(d) { return weekNum != null ? "translate(35,0)" : "translate(5,0)"})
+                    .attr('r', 3.5)
+                    .attr('cx', function(d) {return xScale(d.date)})
+                    .attr('cy', function(d) {return yScale(d.deaths)})
+                    .attr('id', function(d) {return "time-" + d.id})
+                    .attr('class', "death-time");
+            } else {
+                gTime.selectAll('circle')
+                    .data(adjustedTimelineCoords)
+                    .enter()
+                    .append('circle')
+                    .style('fill', '#eff3ff')
+                    .style("stroke", "black")
+                    .attr("cursor", "pointer")
+                    .attr("transform",function(d) { return weekNum != null ? "translate(35,0)" : "translate(5,0)"})
+                    .attr('r', 3.5)
+                    .attr('cx', function(d) {return xScale(d.date)})
+                    .attr('cy', function(d) {return yScale(d.total)})
+                    .attr('id', function(d) {return "time-" + d.id})
+                    .attr('class', "death-time");
+            }
+
+            //Timeline hover interaction.
+            gTime.selectAll('circle')
+                .on('mouseover', function(d) {
+				    d3.select("#time-" + d.id)
+					   .style('fill', '#6baed6')
+					   .attr('r', '8px')
+            
+				    //move brushed circle so that it's on top
+				    this.parentNode.appendChild(this);
+                    var numDeaths = d.deaths; //Deaths for that day
+                    var totalDeaths = d.total; //Total deaths.
+                    var prevDayDeaths = totalDeaths - numDeaths; //Total deaths for the previous day.
+                    //console.log(prevDayDeaths);
+                
+                    document.getElementById("date-input").textContent = d.date;   
+                    document.getElementById("day-input").textContent = d.deaths;   
+                    document.getElementById("total-input").textContent = d.total;   
+                
+                    //Show the deaths for that day if there were more than 0, otherwise show none.
+                    if (time == "daily") {
+                        if (numDeaths > 0) {
+                        addDeaths(totalDeaths, prevDayDeaths);
+                        pieCharts(totalDeaths, prevDayDeaths, numDeaths);
+                        } else {
+                            //Remove all circles to replace with desired number.
+                            gMap.selectAll(".deathIcon").remove();
+                            gPie.selectAll("g").remove();
+                        }
+                    } else { //Show total deaths up to that day.
+                        addDeaths (totalDeaths, 0);
+                        pieCharts (totalDeaths, 0, totalDeaths);
+                    }
+			     })
+                .on('mouseout', function(d) {
+				d3.select("#time-" + d.id)
+				.style('fill', '#eff3ff')
+				.attr('r', 3.5);
+			})
+                
+            
+        }
+        
+        //Change the data on timeline chart/map when timeline is hovered based on either daily deaths or total.
+        function timeFrame(x) {
+            //Remove old chart info from the timeline graph and map.
+            gTime.selectAll(".death-time").remove();
+            gTime.selectAll(".axis").remove();
+            document.getElementById("date-input").textContent = "";   
+            document.getElementById("day-input").textContent = "";   
+            document.getElementById("total-input").textContent = "";  
+            
+            //Reset the map.
+            gMap.selectAll(".deathIcon").remove();
+            addDeaths(deathCoords.length, 0);
+            
+            week = document.getElementById("timeline-chart").getAttribute("class");
+            
+            var selectDaily = document.getElementById('daily-deaths');
+            var selectTotal = document.getElementById('total-deaths');
+            
+            var yLabel = document.getElementById("y-label");
+            if (x == "daily") {
+                //Change "button" color.
+                selectDaily.setAttribute("style", "fill: #c6dbef");
+                selectTotal.setAttribute("style", "fill: none");
+                
+                document.getElementById("temp").value = "daily";
+                
+                yLabel.textContent = "Number of Deaths (per Day)";
+                createTimeline("daily", 150, week);
+            } else {
+                //Change "button" color.
+                selectDaily.setAttribute("style", "fill: none");
+                selectTotal.setAttribute("style", "fill: #c6dbef");
+                
+                document.getElementById("temp").value = "total";
+                
+                yLabel.textContent = "Number of Deaths (Total)";
+                createTimeline("total", 600, week);
+            }
+            
+        } 
+        
+        //Create Pie Charts for age and gender, change with timeline.
+        function pieCharts(totalDeaths, prevDayDeaths, numDeaths) {
+
+            var age0 = 0;
+            var age1 = 0;
+            var age2 = 0;
+            var age3 = 0;
+            var age4 = 0;
+            var age5 = 0;
+            var agePie = [];
+            var gender0 = 0; //Male
+            var gender1 = 0; //Female
+            var genderPie = [];
+
+            for (var i = prevDayDeaths; i < totalDeaths; i++) {
+                
+                //Count age values.
+                if (deathCoords[i].age == 0) {
+                    age0++
+                } else if (deathCoords[i].age == 1) {
+                    age1++
+                } else if (deathCoords[i].age == 2) {
+                    age2++
+                } else if (deathCoords[i].age == 3) {
+                    age3++
+                } else if (deathCoords[i].age == 4) {
+                    age4++
+                } else {
+                    age5++
+                }
+                
+                //Count gender values.
+                if (deathCoords[i].gender == 0) {
+                    gender0++
+                } else {
+                    gender1++
+                }
+            }   
+            
+            //Create age object.
+            for (var  j= 0; j < 6; j++) {
+                if (j == 0) {
+                    var object = {
+                        age: age0,
+                        percentTotal: ((age0 / numDeaths) * 100).toFixed(2)
+                    }
+                } else if (j == 1) {
+                    var object = {
+                        age: age1,
+                        percentTotal: ((age1 / numDeaths) * 100).toFixed(2)
+                    }
+                } else if (j == 2) {
+                    var object = {
+                        age: age2,
+                        percentTotal: ((age2 / numDeaths) * 100).toFixed(2)
+                    }
+                } else if (j == 3) {
+                    var object = {
+                        age: age3,
+                        percentTotal: ((age3 / numDeaths) * 100).toFixed(2)
+                    }
+                } else if (j == 4) {
+                    var object = {
+                        age: age4,
+                        percentTotal: ((age4 / numDeaths) * 100).toFixed(2)
+                    }
+                } else {
+                    var object = {
+                        age: age5,
+                        percentTotal: ((age5 / numDeaths) * 100).toFixed(2)
+                    }
+                }
+
+                agePie.push(object);
+            }
+                 
+            var ageColors = ['#eff3ff', '#c6dbef', '#9ecae1','#6baed6', '#3182bd', '#08519c'];
+
+            var ageScale = d3.scale.linear()
+                .domain([0,agePie.length])
+                .range(ageColors);
+
+            var arc = d3.svg.arc()
+                .innerRadius(40)
+                .outerRadius(100);
+
+            var pie = d3.layout.pie()
+                .value(function(d){ return d.percentTotal; })
+                .sort(null);
+
+            //Age chart.
+            var ageChart = gPie.append('g')
+                .attr('transform','translate(100,100)')
+                .style("stroke", "black")
+                .selectAll('.aArc')
+                .data(pie(agePie))
+                .enter()
+                .append('g')
+                .attr('class',"aArc")
+
+            ageChart.append('path')
+                .attr('d',arc)
+                .attr('fill',function(d, i){ return ageColors[i] })
+                .attr("cursor", "pointer")
+
+            //Age chart text.
+            ageChart.append('text')
+                .attr('transform',function(d) { 
+                        var center = arc.centroid(d);
+                        return "translate(" + (center[0] - 15) + "," + (center[1] + 5) + ")";
+                    })
+                .style("font-size", "12px")
+                .text(function(d){ return (d.value + "%") })
+                .attr("cursor", "pointer");
+            
+            //On hover, show details.
+            ageChart.on("mouseover", function(d, i) {
+                    if(i == 0) {
+                        label = "0-10";  
+                        x = 0;
+                    } else if (i == 1) {
+                        label = "11-20";
+                        x = 1;
+                    } else if (i == 2) {
+                        label = "21-40"; 
+                        x = 2;
+                    } else if (i == 3) {
+                        label = "41-60"; 
+                        x = 3;
+                    } else if (i == 4) {
+                        label = "61-80";  
+                        x = 4;
+                    } else {
+                        label = "> 80";  
+                        x = 5;
+                    } 
+                
+                    gPie.append('text')
+                        .attr('transform','translate(64,95)')
+                        .style('font-weight', "bold")
+                        .style("font-size", "13px")
+                        .attr("class", "ageLabel")   
+                        .text("Age: " + label);
+                
+                    gPie.append('text')
+                        .attr('transform','translate(63,115)')
+                        .style('font-weight', "bold")
+                        .style("font-size", "13px")
+                        .attr("class", "ageLabel")   
+                        .text(function(d) {return 'Deaths: ' +  (agePie[x].age)});
+                })
+            
+                ageChart.on("mouseout", function(d) {
+                    gPie.selectAll(".ageLabel").remove();
+                })
+            
+            
+            
+            //Create gender object.
+            for (var x = 0; x < 2; x++) {
+                if (x == 0) {
+                    var object = {
+                        gender: gender0,
+                        percentTotal: ((gender0 / numDeaths) * 100).toFixed(2)
+                    }
+                } else if (x == 1) {
+                    var object = {
+                        gender: gender1,
+                        percentTotal: ((gender1 / numDeaths) * 100).toFixed(2)
+                    }
+                }
+                
+                genderPie.push(object);
+            }
+            var genderColors = ['#a6cee3', '#b2df8a'];
+
+            var ageScale = d3.scale.linear()
+                .domain([0,genderPie.length])
+                .range(genderColors);
+            
+            var pie = d3.layout.pie()
+                .value(function(d){ return d.percentTotal; })
+            
+            //Gender chart.
+            var genderChart = gPie.append('g')
+                .attr('transform','translate(350,100)')
+                .style("stroke", "black")
+                .selectAll('.gArc')
+                .data(pie(genderPie))
+                .enter()
+                .append('g')
+                .attr('class',"gArc")
+
+            genderChart.append('path')
+                .attr('d',arc)
+                .attr('fill',function(d,i){ return genderColors[i] })
+                .attr("cursor", "pointer");
+
+            //Gender chart text.
+            genderChart.append('text')
+                .attr('transform',function(d) { 
+                        var center = arc.centroid(d);
+                        return "translate(" + (center[0] - 20) + "," + (center[1] + 5) + ")";
+                    })
+                .style("font-size", "12px")
+                .text(function(d){ return (d.value + "%") })
+                .attr("cursor", "pointer");
+            
+            //Gender chart text.
+            genderChart.append('text')
+                .attr('transform',function(d) { 
+                        var center = arc.centroid(d);
+                        return "translate(" + (center[0] - 20) + "," + (center[1] -11) + ")";
+                    })
+                .style("font-size", "12px")
+                .text(function(d, i){ return (i == 0 ? "Male" : "Female")})
+                .attr("cursor", "pointer");
+            
+            //On hover, show details.
+            genderChart.on("mouseover", function(d, i) {
+                
+                label = (i == 0 ? "Male" : "Female");
+                x = (i == 0 ? 0 : 1);
+                
+                    gPie.append('text')
+                        .attr('transform','translate(315,95)')
+                        .style('font-weight', "bold")
+                        .style("font-size", "13px")
+                        .attr("class", "genderLabel")   
+                        .text(label);
+                
+                    gPie.append('text')
+                        .attr('transform','translate(314,115)')
+                        .style('font-weight', "bold")
+                        .style("font-size", "13px")
+                        .attr("class", "genderLabel")   
+                        .text(function(d) {return 'Deaths: ' +  (genderPie[x].gender)});
+                })
+            
+                genderChart.on("mouseout", function(d) {
+                    gPie.selectAll(".genderLabel").remove();
+                })
+        }
+        
+        //Change the week-button colors.
+        function changeWeek(weekNum) {
+            d3.selectAll(".week-select")
+                .style("fill", "none")
+            
+            if (weekNum == null) {
+                d3.selectAll('#week0')
+                    .style("fill", "#c6dbef")
+            } else if (weekNum == 0) {
+                d3.selectAll('#week1')
+                    .style("fill", "#c6dbef")
+            } else if (weekNum == 1) {
+                d3.selectAll('#week2')
+                    .style("fill", "#c6dbef")
+            } else if (weekNum == 2) {
+                d3.selectAll('#week3')
+                    .style("fill", "#c6dbef")
+            } else if (weekNum == 3) {
+                d3.selectAll('#week4')
+                    .style("fill", "#c6dbef")
+            } else if (weekNum == 4) {
+                d3.selectAll('#week5')
+                    .style("fill", "#c6dbef")
+            } else {
+                d3.selectAll('#week6')
+                    .style("fill", "#c6dbef")
+            }
+            
+            
+        }
+        
+        
+        
+        
+         
+        //Load the streets.json file.
+        d3.json("streets.json", function(data) {
+            //console.log(data);
+            //console.log(data[0]);
+            
+            mapCoords = data;
+            //console.log(mapCoords);
+            //console.log(mapCoords[0][0].x);
+            //console.log(mapCoords[0][0].y)
+            createStreetMap();
+        });
+        
+        //Load and create the rest of the data after the map has been drawn.
+            function loadData() {
+            //Load the pumps.csv file.
+            d3.csv("pumps.csv", function(data) {
+                //console.log(data);
+                //console.log(data[0]);
+            
+                pumpCoords = data;
+                addPumps();
+            });
+        
+            //Load the deaths_age_sex.csv file.
+            d3.csv("deaths_age_sex.csv", function(data) {
+                //console.log(data);
+                //console.log(data[0]);
+                
+                deathCoords = data;
+                addDeaths(deathCoords.length, 0);
+                pieCharts(deathCoords.length, 0, deathCoords.length)
+            });
+        
+            //Load the deathdays.csv file.
+            d3.csv("deathdays.csv", function(data) {
+                //console.log(data);
+                //console.log(data[0].date);
+            
+                var totalDeaths = 0;
+            
+                //Create a new object that has adds the total deaths for each day.
+                for (i = 0; i < data.length; i++) {
+                    totalDeaths += Number(data[i].deaths);
+                    //console.log(totalDeaths);
+                    var object = {
+                        id: i,
+						date: data[i].date,
+						deaths: data[i].deaths,
+                        total: totalDeaths
+				    };
+                    timelineCoords.push(object);
+                }
+                //console.log(timelineCoords)
+                createTimeline();
+            });
+        }
+        
+	</script>
+    
+</body>
+
+</html>
